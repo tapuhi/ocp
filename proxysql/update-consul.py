@@ -41,14 +41,13 @@ for cluster in clusters:
             #master_slaves=[{'isMaster':isMaster , 'nodes':nds } for isMaster,nds in groupby(nodes,key=itemgetter('IsCoMaster'))]
             for is_master,cluster_nodes in groupby(nodes,key=itemgetter('IsCoMaster')):
                 slaves=[node['Key']['Hostname'] for node in cluster_nodes]
-                if is_master:
-                    for slave in slaves:
-                        c.kv.put(str.upper('db/mysql/clusters/{}/dcs/{}/masters/{}/'.format(bag_item_name,dc,slave)), None)
-                        c.kv.put(str.upper('db/mysql/clusters/{}/dcs/{}/masters/{}/host_name'.format(bag_item_name,dc,slave)), slave)
-                else:
-                    for slave in slaves:
-                        c.kv.put(str.upper('db/mysql/clusters/{}/dcs/{}/slaves/{}/'.format(bag_item_name,dc,slave)), None)
-                        c.kv.put(str.upper('db/mysql/clusters/{}/dcs/{}/slaves/{}/host_name'.format(bag_item_name,dc,slave)), slave)
+                master_slave = 'masters' if is_master else 'slaves'
+                for slave in slaves:
+                    data={}
+                    data['hostname'] = slave
+                    data['port']=3306
+                    c.kv.put(str.upper('db/mysql/clusters/{}/dcs/{}/{}/{}/'.format(bag_item_name,dc,master_slave,slave)), None)
+                    c.kv.put(str.upper('db/mysql/clusters/{}/dcs/{}/{}/{}/data'.format(bag_item_name,dc,master_slave,slave)), json.dumps(data))
 
     except:
         None
