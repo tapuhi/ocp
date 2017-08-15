@@ -1,0 +1,1 @@
+./consul-template -consul-addr "http://sys-hdc2-master0a.42.wixprod.net:8500" -template "/etc/consul/templates/services_3.ctmpl:/tmp/template.conf: bash -c /tmp/mysql.sh || true " -dedup --once

@@ -1,0 +1,14 @@
+{{ $this_dc := "42" }}
+{{ $clusters := tree "DB/MYSQL/CLUSTERS" | explode }} {{ range $cluster, $cluster_pair := $clusters }}
+#############################
+######{{$cluster}}###########
+############################
+{{ with $cluster_id :=  (print $cluster_pair.CLUSTER_ID )   | parseInt }} {{ range $dc, $dc_pair := $cluster_pair.DCS}}
+## {{ $dc }} ##
+{{ range $slave, $slave_pair := $dc_pair.SLAVES }}{{ $slave := (print $slave ) | toLower }}
+REPLACE into mysql_servers (hostgroup_id,hostname,weight) values ({{$cluster_id}}, '{{$slave}}',{{if ne $dc $this_dc}}{{print "0"  }}{{else}}{{print "100" }} {{end}}); {{end}}
+{{end}}{{ $cluster_lower := (print $cluster ) | toLower }}
+REPLACE into mysql_replication_hostgroups values({{$cluster_id}},{{ add $cluster_id 1000 }},{{(printf "'mysql_%s'" $cluster_lower)}});{{end}}{{end}}
+## LOAD CHANGES TO MEM AND TO DISK ##
+load mysql servers to runtime;
+save mysql servers to disk;
